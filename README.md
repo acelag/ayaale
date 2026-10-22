@@ -22,7 +22,7 @@ npm run typecheck
 npm run build
 ```
 
-The production build exports a static website into `out/`. Serve that folder with any static web server. `npm start` is not supported for a static export; use `npm run dev` for local development.
+The production build writes to `.next/`. Run `npm start` after `npm run build` to serve the production application. The server listens on `0.0.0.0` and uses the `PORT` environment variable supplied by the host (3000 by default).
 
 ## Structure
 
@@ -46,3 +46,11 @@ At 1440px, 768px, and 390px viewport widths: verify no horizontal overflow, read
 ## Verification results
 
 Lint, TypeScript, and production build passed. Browser checks passed for empty-title validation, idea capture and count updates, search for a captured idea, Escape dismissal with focus restoration, and coming-soon feedback. Exact 1440px/768px/390px browser viewport checks were not available in the preview controls; responsive breakpoints are implemented but those three widths still need manual visual review.
+
+## Render Web Service
+
+- Build command: `npm ci && npm run build`
+- Start command: `npm start`
+- Node.js: 22.13 or later (24 recommended)
+
+This project uses a Next.js production server, not static export mode. After pushing a change, deploy the latest commit on Render if automatic deployment is disabled.
