@@ -1,60 +1,83 @@
-# Free Ayaale preview deployment — 7 November 2026
+# Live free Ayaale preview — 8 November 2026
 
-Owner authorization: deploy the rebuilt Ayaale to its separate existing Render service, leaving the domain's current KadeCloud site unchanged. Do not apply the deferred paid two-service Blueprint, create replacement services, change custom domains/DNS, enable indexing or upgrade any plan.
+The owner authorized deployment to the existing free Ayaale Render service, leaving the domain's current KadeCloud site unchanged. The preview is now live at https://ayaale.onrender.com. This is a development preview using the existing free development database, not a production launch or an isolated paid staging environment.
 
-## Confirmed target
+## Deployed source and target
 
-- Render workspace: My Workspace (`tea-d9jfttvavr4c73ceoi80`).
-- Existing service: `ayaale` (`srv-dbd0lagm7kps73d6afeg`), Free Node web service, Singapore.
-- Preview URL: https://ayaale.onrender.com.
-- Repository: https://github.com/acelag/ayaale, currently tracking `main` with automatic deploys on commits.
-- Prior live deployment: `dep-dbd1r3e7bikc73a8vh6g`, source commit `4d032a99092669569c0761369a308e0f28ab32bb` (22 October). This is old source; triggering a deploy before publishing the rebuild would deploy that source again.
-- `ayaale.com` redirects to `www.ayaale.com`, whose current page title is KadeCloud. Keep the domain assignment and DNS unchanged.
+| Item                        | Verified value                                 |
+| --------------------------- | ---------------------------------------------- |
+| Workspace                   | My Workspace (`tea-d9jfttvavr4c73ceoi80`)      |
+| Existing service            | `ayaale` (`srv-dbd0lagm7kps73d6afeg`)          |
+| Plan / runtime / region     | Free / Node / Singapore                        |
+| Repository                  | https://github.com/acelag/ayaale               |
+| Branch                      | `codex/ayaale-v1-preview`                      |
+| Deployed application commit | `de7de764cf6dfec8b672880f07fe4fe613b06562`     |
+| Successful deployment       | `dep-dbno76mc6qcc73ee4cbg` — verified `live`   |
+| Preview URL                 | https://ayaale.onrender.com                    |
+| Health check                | `/api/health` — verified 200                   |
+| Custom domains              | None on this service; domain routing unchanged |
 
-## Publication dependency
+[Render deployment](https://dashboard.render.com/web/srv-dbd0lagm7kps73d6afeg/deploys/dep-dbno76mc6qcc73ee4cbg), [published application commit](https://github.com/acelag/ayaale/commit/de7de764cf6dfec8b672880f07fe4fe613b06562).
 
-The GitHub connector was rechecked on 7 November: repository access is `pull=true`, `push=false`. This checkout now has `origin` pointing to the authorized repository, but no rebuild commit has been pushed. Source publication and deployment remain blocked until write access is available. Never work around a denied connector permission or expose an access token in chat, commands, source or logs.
+The published branch is based on the existing remote history and contains the rebuilt source tree. The unrelated local scaffold history was not force-pushed. `main` remains unchanged. GitHub's connector was unavailable, so publication used GitHub CLI with the owner's browser authorization; its credential is stored in the system keyring. No credential was put in Git or chat. A repository-local Git credential helper supports subsequent pushes without changing other repositories' Git configuration.
 
-After write access is restored, inspect the current remote branch and preserve remote history. Publish the reviewed rebuild on a `codex/` branch based on that history, retaining the intended removal of the old scaffold. Verify source and ignored-secret boundaries before publishing. Configure the existing Render service to that reviewed source; avoid publishing an intermediate revision to its auto-deployed `main` branch.
+Automatic deployment is off. A later push, including documentation changes, does not itself deploy. Trigger a manual deployment only when the intended source and configuration are ready. The deployed application commit above remains the verification reference even if the branch later gains documentation-only commits.
 
-## Required existing-service settings
+## Saved service configuration
 
-| Setting                 | Value                                                                                                                                         |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Plan                    | Keep Free                                                                                                                                     |
-| Runtime / region        | Keep Node / Singapore                                                                                                                         |
-| Node version            | Use `.node-version` (24.22.1); remove conflicting override                                                                                    |
-| Build command           | `npm ci --include=dev && npm run build:render`                                                                                                |
-| Start command           | `npm run start -- --hostname 0.0.0.0`                                                                                                         |
-| Health check            | `/api/health`                                                                                                                                 |
-| App environment         | `APP_ENV=staging`                                                                                                                             |
-| Site origin             | `NEXT_PUBLIC_SITE_URL=https://ayaale.onrender.com`                                                                                            |
-| Supabase                | Existing free development project and its publishable key; privileged key server-side only for implemented features                           |
-| Search indexing         | `SEO_INDEXING_ENABLED=false`                                                                                                                  |
-| Google analytics        | `NEXT_PUBLIC_ANALYTICS_ENABLED=false`                                                                                                         |
-| Optional signup/sending | `NEWSLETTER_SIGNUP_ENABLED=false`, `NEWSLETTER_SEND_ENABLED=false`, `TRANSACTIONAL_EMAIL_ENABLED=false`, `NEWSLETTER_TEST_SEND_ENABLED=false` |
-| Offer view collection   | `OFFER_VIEW_TRACKING=off` for this preview                                                                                                    |
-| Telemetry               | `NEXT_TELEMETRY_DISABLED=1`                                                                                                                   |
+| Setting                       | Value                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| Node version                  | `.node-version` pins 24.22.1                                              |
+| Build command                 | `npm ci --include=dev && npm run build:render`                            |
+| Start command                 | `npm run start -- --hostname 0.0.0.0`                                     |
+| Health check                  | `/api/health`                                                             |
+| Application environment       | `APP_ENV=staging`                                                         |
+| Site origin                   | `NEXT_PUBLIC_SITE_URL=https://ayaale.onrender.com`                        |
+| Supabase project              | Existing free `ayaale-development`, `buntpenbggavsoskhfnu`                |
+| Indexing                      | `SEO_INDEXING_ENABLED=false`                                              |
+| Google Analytics              | `NEXT_PUBLIC_ANALYTICS_ENABLED=false`                                     |
+| Newsletter signup and sending | `NEWSLETTER_SIGNUP_ENABLED=false`, `NEWSLETTER_SEND_ENABLED=false`        |
+| Optional email/test sending   | `TRANSACTIONAL_EMAIL_ENABLED=false`, `NEWSLETTER_TEST_SEND_ENABLED=false` |
+| Offer-view collection         | `OFFER_VIEW_TRACKING=off`                                                 |
+| Telemetry                     | `NEXT_TELEMETRY_DISABLED=1`                                               |
 
-The Render connector can update environment variables and trigger deployment, but does not expose existing-service build/branch/health settings. Use the authenticated Dashboard for those settings. Keep secrets in Render's environment settings and copy only the required existing development credentials; never import all local environment values blindly. Public build-time values require a rebuild.
+The existing `PORT` setting was preserved. No new service, instance upgrade, paid Blueprint, worker or cron job was created. The root `render.yaml` remains a deferred paid proposal; do not apply it for this free preview. Future environment changes must preserve unrelated values, avoid displaying secrets and account for Render's save/rebuild behavior.
 
-Use only the existing development database; do not connect production data to this preview. T031, T047 and T048 were applied to free development during this deployment preparation. Exact Supabase Auth site/redirect URLs must still be configured for the preview before partner authentication smoke checks. No new emails or marketing sends are authorized by publishing the preview.
+The owner explicitly approved copying the existing Supabase publishable key and `SUPABASE_SECRET_KEY` from the ignored local environment into this service's protected settings. Only those two keys and the required public URL were transferred; email-provider keys and unrelated local settings were not copied. The privileged key is server-only. Database access still follows the application's role checks and controlled service functions. Keep Render dashboard access restricted.
 
-## Verification before reporting deployment complete
+The first automatic build initiated by saving public settings stopped because the required publishable key had not yet been supplied. After the owner's credential-transfer approval, both keys were saved and a new manual build succeeded. No successful deployment is claimed for the earlier failed build.
 
-- Record the exact reviewed source commit and new Render deploy ID.
-- Wait for that deploy to reach `live`; a successful trigger is not proof of deployment.
-- Verify `/api/health` returns 200 and exposes no credentials.
-- Verify home, public detail/profile availability states, partner sign-in, and admin access protection against the actual development database.
-- Confirm robots disallows indexing, pages remain noindex, `/sitemap.xml` is unavailable and optional Google/email/newsletter features stay off.
-- Verify exact Auth callback URL for this preview, without broad redirect wildcards.
-- Inspect startup/runtime logs for deployment errors without exposing secrets or personal data.
-- Recheck that the live KadeCloud domain routing has not changed.
+## Authentication callbacks
 
-No deployment, environment change, service upgrade or domain cutover has been performed during preparation. The existing automated-test results are recorded in T050. Live preview verification remains pending source-publication access.
+The owner separately approved adding these exact return URLs to the free Supabase development project's Auth configuration:
 
-## Preparation verification
+- `https://ayaale.onrender.com/auth/callback`
+- `http://localhost:3000/auth/callback`
+- `http://127.0.0.1:3000/auth/callback`
 
-The preview-specific `build:render` passed using the existing development database configuration. Local checks of that built application passed: health 200, server-rendered noindex, robots disallow, sitemap 404, and logged-out admin/partner redirects. The temporary smoke-test server was stopped. A source scan found no literal values matching the configured local secrets or private-key headers in the selected source files; ignored credentials, Git history, generated output and dependencies are excluded from the release package. This is a credential-boundary check, not a proof that arbitrary source can contain no sensitive information.
+The dashboard was checked after saving: all three are present, without wildcards. The existing default Site URL, `http://localhost:3000`, was retained. The application explicitly supplies its configured callback for signup, so the preview can use its allowlisted return URL while local development remains supported. No password, provider, MFA or user-role settings were changed. No real confirmation email was sent during verification.
 
-T031 property analytics, T047 newsletter editor and T048 dispatch migrations were applied and their function grants inspected. Newsletter sending remains disabled, and no provider call or campaign send was performed. The Supabase scan reports the existing password-protection warning and expected deny-all private table notices, including the two new newsletter tables. No broader grants or plan upgrade were added.
+## Database and privacy boundaries
+
+T031 property analytics, T047 newsletter editor and T048 dispatch migrations were applied individually to free development during preparation, and their function grants were inspected. Subscriber lists, reporting identities and drafts remain private. Newsletter sending remains disabled, and no provider message or campaign was sent.
+
+The Supabase advisor scan retains its existing password-protection warning and expected deny-all private-table notices, including the two newsletter tables. No broader table grants or plan upgrade were added. The runtime-only npm audit reported zero vulnerabilities; Render's install warnings concerned development tooling and were not automatically fixed with breaking upgrades.
+
+## Verification evidence
+
+- The preview-specific production build passed before publication, and Render built the exact published application commit.
+- The hosted health endpoint returned 200 with only `{"status":"ok"}`. Startup logs show the app listening on `0.0.0.0:10000`, with no startup errors in the inspected window.
+- The deployed homepage rendered successfully against the development database. It currently shows no approved offers; this is an empty catalogue, not a failed feed.
+- Pages remain noindex, robots disallows crawling, `/sitemap.xml` returns 404, and no Google Analytics loader is present.
+- A response scan found no exposed server secret in the homepage. Logged-out `/admin` and `/partner` redirect to sign-in and include noindex headers. Missing public offers/properties return 404.
+- The homepage was inspected in the browser, and a live screenshot was saved for the owner. The pre-deployment automated checks are recorded in T050.
+- `ayaale.com` still redirects to `www.ayaale.com`, whose page title remains KadeCloud. No DNS or custom-domain setting was changed.
+- Authenticated partner/admin browser activity and actual email delivery were not exercised during this deployment; the owner can sign in at the preview using an existing confirmed account.
+
+The Render Dashboard also displays a pre-existing workspace payment-failed warning. The Ayaale service remains Free and no billing settings were changed; the workspace owner must handle any billing issue separately.
+
+## Subsequent deploys and rollback
+
+Use the existing service and manual deployment mode. Verify the exact source commit, environment flags, database compatibility and final `live` status before reporting a release. The health check is liveness only; a green endpoint does not prove all database or email workflows work. Recheck representative public and protected routes after each release.
+
+A rollback of the application does not reverse the applied database migrations, Auth URL configuration or external state. The older October deployment used a different application; do not assume it remains compatible with the current database. Keep KadeCloud and its domain mapping outside this service's deployment operations. Production domain cutover, indexing, live email activation and later build-plan tasks require their own authorization.

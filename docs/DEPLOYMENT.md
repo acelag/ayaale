@@ -1,5 +1,9 @@
 # T004 — Deployment runbook
 
+## Free preview deployment update — 8 November 2026
+
+The owner authorized the existing free Render service to host the rebuilt preview at https://ayaale.onrender.com, using the existing free development database. Commit `de7de764cf6dfec8b672880f07fe4fe613b06562` is live on service `srv-dbd0lagm7kps73d6afeg`, from `codex/ayaale-v1-preview`; main is unchanged and automatic deployments are off. Health, noindex, access protection and domain preservation checks passed. No custom domain, billing plan or KadeCloud configuration changed. See [the current preview deployment record](RENDER_PREVIEW_DEPLOYMENT.md) for credentials approval, exact Auth callbacks and remaining launch boundaries. The initial T004 provisioning notes below describe the earlier state, not the current preview publication status.
+
 ## Current budget decision
 
 Owner decision (4 November 2026): keep development free. Continue with the local Next.js app and existing $0/month ayaale-development Supabase project. Do not provision paid resources, upgrade plans, create staging/production services or change DNS without new explicit authorization. Staging/production and domain acceptance criteria remain deferred; full T004 is not complete.
