@@ -1,0 +1,22 @@
+-- Combine equivalent OR permissions to avoid duplicate permissive-policy evaluation.
+drop policy admin_read on private.property_verification_requests;
+drop policy verification_owner_read on private.property_verification_requests;
+create policy scoped_read on private.property_verification_requests for select to authenticated using ((select private.is_platform_admin()) or private.property_role(property_id)='owner');
+drop policy admin_read on private.property_subscriptions;
+drop policy subscription_owner_read on private.property_subscriptions;
+create policy scoped_read on private.property_subscriptions for select to authenticated using ((select private.is_platform_admin()) or private.property_role(property_id)='owner');
+drop policy admin_read on private.trial_allocations;
+drop policy trial_owner_read on private.trial_allocations;
+create policy scoped_read on private.trial_allocations for select to authenticated using ((select private.is_platform_admin()) or private.property_role(property_id)='owner');
+drop policy admin_read on private.daily_offer_metrics;
+drop policy metrics_member_read on private.daily_offer_metrics;
+create policy scoped_read on private.daily_offer_metrics for select to authenticated using ((select private.is_platform_admin()) or exists(select 1 from public.offers o where o.id=offer_id and private.property_role(o.property_id) is not null));
+drop policy admin_read on private.offer_revisions;
+drop policy revisions_member_read on private.offer_revisions;
+create policy scoped_read on private.offer_revisions for select to authenticated using ((select private.is_platform_admin()) or exists(select 1 from public.offers o where o.id=offer_id and private.property_role(o.property_id) is not null));
+drop policy admin_read on private.offer_status_history;
+drop policy history_member_read on private.offer_status_history;
+create policy scoped_read on private.offer_status_history for select to authenticated using ((select private.is_platform_admin()) or exists(select 1 from public.offers o where o.id=offer_id and private.property_role(o.property_id) is not null));
+drop policy admin_read on private.notification_events;
+drop policy notification_recipient_read on private.notification_events;
+create policy scoped_read on private.notification_events for select to authenticated using ((select private.is_platform_admin()) or ((select private.verified_identity()) and recipient_id=(select auth.uid())));

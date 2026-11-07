@@ -1,4 +1,24 @@
+# Credentials and local configuration
+.env*
+!.env.example
+*.pem
+*.key
+# Generated dependencies and output
 node_modules/
+!package-lock.json
 .next/
 out/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
 *.tsbuildinfo
+*.log
+.vercel/
+# Local tooling
+.DS_Store
+.idea/
+.vscode/
+.supabase/
+supabase/.temp/

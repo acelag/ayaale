@@ -1,0 +1,71 @@
+name: Quality checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, types, unit and browser tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: ayaale_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: synthetic-test-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ayaale_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      AYAALE_TEST_DATABASE_URL: postgresql://postgres:synthetic-test-password@127.0.0.1:5432/ayaale_test
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci --include=dev
+      - name: Check formatting, lint, types, unit tests and contrast
+        run: npm run check
+      - name: Test database migrations and constraints
+        run: npm run test:db
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Test the production build
+        run: npm run test:e2e
+      - name: Test canonical production SEO configuration
+        run: npm run test:seo
+      - name: Retain failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: browser-test-failure
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 3

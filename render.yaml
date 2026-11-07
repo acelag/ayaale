@@ -1,0 +1,57 @@
+# DEFERRED: owner chose free development on 4 November 2026.
+# DO NOT APPLY: paid staging/production requires new explicit authorization.
+# Proposed paid infrastructure: TWO separately billed environment services.
+# Production target already exists; reconcile/adopt it before importing.
+# Review workspace, repository, plans and costs before applying.
+# No custom domains are attached automatically: see docs/DEPLOYMENT.md.
+services:
+  - type: web
+    name: ayaale-staging
+    repo: https://github.com/acelag/ayaale
+    branch: main
+    runtime: node
+    region: singapore
+    plan: 0.5c-512mb
+    numInstances: 1
+    autoDeployTrigger: "off"
+    buildCommand: npm ci --include=dev && npm run build:render
+    startCommand: npm run start -- --hostname 0.0.0.0
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_ENV
+        value: staging
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+  - type: web
+    name: ayaale
+    repo: https://github.com/acelag/ayaale
+    branch: main
+    runtime: node
+    region: singapore
+    plan: 0.5c-512mb
+    numInstances: 1
+    autoDeployTrigger: "off"
+    buildCommand: npm ci --include=dev && npm run build:render
+    startCommand: npm run start -- --hostname 0.0.0.0
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_ENV
+        value: production
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: NEXT_PUBLIC_SITE_URL
+        value: https://ayaale.com
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+        sync: false

@@ -1,0 +1,26 @@
+{
+  "id": "/",
+  "name": "Ayaale",
+  "short_name": "Ayaale",
+  "description": "Discover offers for stays, dining and day outs in Sri Lanka.",
+  "lang": "en",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fafaf7",
+  "theme_color": "#fafaf7",
+  "icons": [
+    {
+      "src": "/icons/ayaale-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/ayaale-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+playwright-report/
+test-results/
+package-lock.json
+next-env.d.ts
+AGENTS.md
+.env*
+# Preserve the authoritative imported specification byte-for-byte.
+docs/Ayaale_V1_Build_Plan.md
