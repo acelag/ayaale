@@ -1,4 +1,6 @@
-# Live free Ayaale preview — 8 November 2026
+# Initial free Ayaale preview — 8 November 2026
+
+This records the initial preview deployment. The later authorized custom-domain move is complete; see [current domain configuration](DOMAIN_CUTOVER.md). The staging origin and unchanged-domain statements below describe the earlier deployment only.
 
 The owner authorized deployment to the existing free Ayaale Render service, leaving the domain's current KadeCloud site unchanged. The preview is now live at https://ayaale.onrender.com. This is a development preview using the existing free development database, not a production launch or an isolated paid staging environment.
 
