@@ -66,6 +66,7 @@ test("admins can inspect platform activity, content health and deployment settin
   await expect(page.getByRole("region", { name: "Recorded view sources" })).toContainText(
     "Unknown",
   );
+  await expect(page.getByRole("region", { name: "Recorded view sources" })).toContainText("28.6%");
   await page.getByRole("link", { name: "7 days" }).click();
   await expect(page.getByRole("link", { name: "7 days" })).toHaveAttribute("aria-current", "page");
   await page.getByText("View daily data").click();

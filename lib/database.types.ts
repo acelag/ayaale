@@ -604,6 +604,10 @@ export type Database = {
         Returns: string;
       };
       record_offer_view: { Args: { event_token: string; offer_slug: string }; Returns: string };
+      record_offer_view_attributed: {
+        Args: { event_token: string; offer_slug: string; traffic_source: string };
+        Returns: string;
+      };
       register_partner_property: {
         Args: { details: Json; registration_id: string };
         Returns: string;

@@ -92,3 +92,33 @@ Production browser coverage now totals 28 cases. Six new discovery cases run on 
 ## Public listing tests (T016)
 
 Current totals are 102 database cases and 32 browser cases. Ten new database cases cover approved projection, fair keyset continuation, stale eligibility, search, ties and invalid input. Browser runs use a loopback fixture on port 3101, with public test values and no server secret; the app runs on 3100. They cover SSR, 12-card initial page, append/retry/focus, native no-JavaScript continuation, filters and distinct outage/empty states. The hosted anonymous RPC and localhost homepage correctly show a real empty feed. See [T016](tasks/T016.md).
+
+## T052 release and mobile performance checks
+
+`npm run test:release` adds iPhone-profile WebKit and 320px Android checks, including whole-page accessibility, enlarged text and landscape touch targets. Install the matching browser with `npx playwright install webkit`. `npm run test:performance` measures three cold-browser samples per public fixture route using a serial Chromium lab profile. Run build-backed suites sequentially; they share `.next` and loopback ports. Reports/results are separated by suite beneath `playwright-report/` and `test-results/`. CI installs Chromium/WebKit and retains the synthetic evidence for three days.
+
+The automated matrix passed 56 cases; the full Chromium regression passed 141 cases with one existing skip, and canonical SEO passed 8. Lab LCP medians were 528–576ms with navigation-window CLS 0 on the test host; these are not field results, INP measurements or Render cold-start guarantees. On 8 November 2026 the owner reported iOS 26.5.2 on iPhone 15 Pro Max and confirmed that the live-site rotation, 200% text, filters, search and sign-in checklist passed. This live baseline does not sign off unpushed changes, VoiceOver or unavailable offer flows; recheck those on the deployed candidate. See [T052](tasks/T052.md) for commands, files, measured settings, security boundaries and the device acceptance checklist.
+
+## T053 continuous database-backed browser journey
+
+`AYAALE_TEST_DATABASE_URL=postgresql://postgres@127.0.0.1:54329/ayaale_test npm run test:journey` follows one new property from signup/PKCE confirmation through independent verification, six-month trial, saved/resumed draft, approval/publication, a recorded contact click, real scheduler expiry and fresh-date duplication. It uses the actual migrated local PostgreSQL roles/RLS/functions through the production-built Next.js app, with separate partner/admin/visitor contexts on desktop Chromium and iPhone WebKit. Auth delivery and object-storage bytes are local substitutes; no hosted data, real email or external contact is used. A controlled fixture deadline advances time; business status transitions still use the actual lifecycle RPC. The helper creates/drops only its own random database and rejects hosted URLs. Reports/checkpoints are under the journey suite folders. See [T053](tasks/T053.md) for files, commands, scope limits and acceptance evidence.
+
+## T054 negative-case verification
+
+The database suite now passes 181 cases. Nine new regressions cover claim-ID retargeting, confirmation revoked after draft creation, forged property/item pairings, repeated approval at capacity and subsequent slot recovery, entitlement expiry before status jobs, untrusted report bursts without automatic suspension, and publication/redemption/subscription expiry between newsletter lease and preparation. Full Chromium regression passed 141 cases with the existing desktop-only skip; source checks, 36 unit cases and 20 contrast checks passed. No schema or application behavior changed. See [T054](tasks/T054.md) for the seven-category coverage matrix, exact commands, local clock-fixture boundaries and cleanup evidence.
+
+## T055 — Operations tooling
+
+`npm run check` includes four operations tests for authenticated backup round trips, corruption/truncation/wrong-key rejection and cleanup, exclusive output creation, monitoring failures, TXT joining and backup freshness. Total: 40 unit tests and 20 contrast pairs, with formatting/lint/types passing. `scripts/operations/status.sql` was run read-only against the free development project: all three jobs healthy; email overdue/failure/bounce/complaint counts zero. Live public HTTP probes timed out and are not marked passed. External backup export/upload/restore, sender verification and alert delivery remain pending; see `docs/tasks/T055.md` and `docs/security/OPERATIONS.md`.
+
+## T056 — Synthetic property setup and pilot preparation
+
+Three explicitly labelled pending sample properties were seeded on free development for the existing confirmed administrator. An idempotent rerun preserved exactly three properties, three owner memberships and three pending review requests; no offers, trials, subscriptions, contact details or email queue entries were created. Public property readers return null. No UI/schema change required regression reruns. Public health timed out and real partner/support/contact/load evidence remains pending. See `docs/tasks/T056.md` and `docs/launch/t056/README.md`.
+
+## T057 — Launch trial readiness
+
+Signup terms and the protected trial-ledger audit were prepared without schema/data changes. `npm run check` passed (40 unit tests, 20 contrast pairs), all 12 existing subscription/allocation tests passed, and the desktop/mobile confirmation-registration flow passed twice against a production local build. Hosted read-only audit: healthy, 0 of 100 allocated, no sample allocations, payments disabled. Disposable test databases were cleaned up and the test cluster stopped. Real rollout/deployed candidate checks and observed allocation monitoring remain pending; see `docs/tasks/T057.md`.
+
+## Phase 6 verification — 8 November 2026
+
+Fresh verification passed: formatting/lint/types, 40 unit tests, 181 database tests, 20 contrast pairs, 141 Chromium checks (one existing skip), 8 SEO checks, 56 mobile/accessibility checks, 2 database-backed desktop/WebKit journeys, 3 mobile performance checks and the isolated synthetic database recovery drill. Local median LCP was 532–600 ms, CLS 0. Hosted job and trial audits passed; public HTTP probes timed out. Operational setup, real-partner pilot, public rollout and exact deployed acceptance remain unfinished. Full evidence and task-by-task acceptance: [Phase 6 review](verification/PHASE_6_REVIEW.md).

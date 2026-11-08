@@ -1,6 +1,8 @@
 import { photoStorage } from "@/lib/media/storage";
 import { isOfferSlug } from "@/lib/offers/public-details";
 import { offerViewTrackingEnabled } from "@/lib/offers/view-tracking";
+import { acceptedSource } from "@/lib/analytics/traffic-source.mjs";
+import { analyticsConfigured } from "@/lib/analytics/privacy.mjs";
 
 const headers = { "Cache-Control": "no-store" };
 const eventId = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -30,9 +32,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
   const client = photoStorage();
   if (!client) return new Response(null, { status: 503, headers });
-  const { data, error } = await client.rpc("record_offer_view", {
+  const sourceEnabled = analyticsConfigured(
+    process.env.NEXT_PUBLIC_ANALYTICS_ENABLED,
+    process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ?? "",
+    process.env.NEXT_PUBLIC_ANALYTICS_PRIVACY_URL ?? "",
+  );
+  const { data, error } = await client.rpc("record_offer_view_attributed", {
     offer_slug: slug,
     event_token: token,
+    traffic_source: sourceEnabled
+      ? acceptedSource(request.headers.get("x-offer-source"))
+      : "unknown",
   });
   if (error) return new Response(null, { status: 503, headers });
   if (data === "unavailable") return new Response(null, { status: 404, headers });

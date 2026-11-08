@@ -22,3 +22,6 @@ test-results/
 .vscode/
 .supabase/
 supabase/.temp/
+# Local backup exports, encrypted copies and verification receipts
+backups/
+*.ayaale-backup

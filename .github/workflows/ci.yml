@@ -53,12 +53,32 @@ jobs:
         run: npm run check
       - name: Test database migrations and constraints
         run: npm run test:db
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install Chromium and WebKit
+        run: npx playwright install --with-deps chromium webkit
       - name: Test the production build
         run: npm run test:e2e
       - name: Test canonical production SEO configuration
         run: npm run test:seo
+      - name: Test iPhone WebKit, narrow mobile layout and accessibility
+        run: npm run test:release
+      - name: Test the database-backed partner journey
+        run: npm run test:journey
+      - name: Test mobile lab performance budgets
+        run: npm run test:performance
+      - name: Retain release and performance evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-quality-evidence
+          path: |
+            test-results/release/
+            test-results/performance/
+            test-results/journey/
+            playwright-report/release/
+            playwright-report/performance/
+            playwright-report/journey/
+          if-no-files-found: ignore
+          retention-days: 3
       - name: Retain failure diagnostics
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

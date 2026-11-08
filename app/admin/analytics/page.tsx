@@ -5,19 +5,16 @@ import { Button } from "@/components/ui/button";
 import { offerViewTrackingEnabled } from "@/lib/offers/view-tracking";
 import { partnerSession } from "@/lib/partner/session";
 
+import {
+  TrafficSourceSummary,
+  type SourceCount,
+} from "@/components/analytics/traffic-source-summary";
+
 const ranges = [7, 30, 90];
-const sources = {
-  unknown: "Unknown",
-  direct: "Direct",
-  newsletter: "Newsletter",
-  search: "Search",
-  social: "Social",
-  referral: "Referral",
-};
 type Analytics = {
   viewIngestionReady: boolean;
   trend: PropertyAnalyticsData["trend"];
-  sources: { source: keyof typeof sources; views: number }[];
+  sources: SourceCount[];
 };
 
 const number = new Intl.NumberFormat("en-LK");
@@ -119,29 +116,9 @@ export default async function PlatformAnalyticsPage({
             </h2>
             <ActivityTrend daily={analytics.trend} />
           </section>
-          <section
-            aria-labelledby="platform-sources"
-            className="mt-5 rounded-lg border bg-card p-4"
-          >
-            <h2 id="platform-sources" className="text-xl font-semibold">
-              Recorded view sources
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Views without reliable attribution appear as Unknown.
-            </p>
-            {analytics.sources.length ? (
-              <dl className="mt-2 divide-y">
-                {analytics.sources.map(({ source, views }) => (
-                  <div key={source} className="flex items-center justify-between gap-3 py-2">
-                    <dt>{sources[source]}</dt>
-                    <dd className="tabular-nums">{number.format(views)}</dd>
-                  </div>
-                ))}
-              </dl>
-            ) : (
-              <p className="mt-2 text-sm">No offer views in this period.</p>
-            )}
-          </section>
+          <div className="mt-5">
+            <TrafficSourceSummary sources={analytics.sources} />
+          </div>
         </>
       ) : (
         <p role="alert" className="mt-4">

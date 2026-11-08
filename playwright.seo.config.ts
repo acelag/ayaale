@@ -3,6 +3,8 @@ import base from "./playwright.config";
 const servers = Array.isArray(base.webServer) ? base.webServer : [];
 export default defineConfig({
   ...base,
+  outputDir: "test-results/seo",
+  reporter: [["list"], ["html", { outputFolder: "playwright-report/seo", open: "never" }]],
   testIgnore: [],
   testMatch: "**/seo-live.spec.ts",
   webServer: servers.map((server, index) =>

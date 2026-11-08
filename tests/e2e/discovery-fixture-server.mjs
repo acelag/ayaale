@@ -170,9 +170,11 @@ createServer(async (req, res) => {
       return;
     }
     if (
-      ["/rest/v1/rpc/record_offer_contact_click", "/rest/v1/rpc/record_offer_view"].includes(
-        req.url,
-      )
+      [
+        "/rest/v1/rpc/record_offer_contact_click",
+        "/rest/v1/rpc/record_offer_view",
+        "/rest/v1/rpc/record_offer_view_attributed",
+      ].includes(req.url)
     ) {
       if (req.headers.apikey !== "synthetic-service-key-for-tests") {
         res.writeHead(401).end();

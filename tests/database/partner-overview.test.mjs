@@ -223,3 +223,47 @@ test("view collection is server-only, deduplicates retries and rejects offers no
     await db.query("set local role service_role");
     assert.equal(await record(randomUUID()), "unavailable");
   }));
+
+test("traffic sources are bounded, immutable on retry and scoped to the selected property and range", () =>
+  tx(async () => {
+    const first = await publishFixture(ids.property1);
+    const second = await publishFixture(ids.property2);
+    const token = randomUUID();
+    const record = async (id, event, source) =>
+      (
+        await db.query("select public.record_offer_view_attributed($1,$2,$3) as result", [
+          `synthetic-${id}`,
+          event,
+          source,
+        ])
+      ).rows[0].result;
+    await db.query("set local role service_role");
+    assert.equal(await record(first, token, "newsletter"), "recorded");
+    assert.equal(await record(first, token, "social"), "duplicate");
+    assert.equal(await record(first, randomUUID(), "private@example.com"), "recorded");
+    assert.equal(await record(second, randomUUID(), "search"), "recorded");
+    await db.query("reset role");
+    await db.query(
+      `insert into private.offer_view_events(offer_id,deduplication_key,occurred_at,source,source_reliable,excluded_reason)
+      values ($1,repeat('1',64),now()-interval '10 days','social',true,null),
+      ($1,repeat('2',64),now(),'search',true,'bot'),
+      ($1,repeat('3',64),now()+interval '1 day','search',true,null)`,
+      [first],
+    );
+    await db.query("update auth.users set email_confirmed_at=now()");
+    await authenticate(ids.staff2);
+    assert.deepEqual((await analytics(ids.property1, 7)).sources, [
+      { source: "newsletter", views: 1 },
+      { source: "unknown", views: 1 },
+    ]);
+    assert.equal((await analytics(ids.property1, 30)).sources.length, 3);
+    assert.equal(await analytics(ids.property2, 7), null);
+    await db.query("reset role");
+    const permissions = (
+      await db.query(`select
+      has_function_privilege('anon','public.record_offer_view_attributed(text,uuid,text)','execute') as anon,
+      has_function_privilege('authenticated','public.record_offer_view_attributed(text,uuid,text)','execute') as user,
+      has_function_privilege('service_role','public.record_offer_view_attributed(text,uuid,text)','execute') as server`)
+    ).rows[0];
+    assert.deepEqual(permissions, { anon: false, user: false, server: true });
+  }));

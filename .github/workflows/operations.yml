@@ -1,0 +1,31 @@
+name: Production public checks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 */6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-public-checks
+  cancel-in-progress: false
+
+jobs:
+  public-checks:
+    # Opt in only after checking the account's included minutes and notification routing.
+    if: vars.AYAALE_MONITORING_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Check out reviewed source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+      - name: Check public health and homepage
+        run: node scripts/check-operations.mjs

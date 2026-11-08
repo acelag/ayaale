@@ -234,3 +234,59 @@ test("weekly reservations, repeated selections and stale scheduling are rejected
       null,
     );
   }));
+
+for (const expiry of ["publication", "redemption", "subscription"]) {
+  test(`T054 ${expiry} expiry after claiming a newsletter suppresses preparation without issuing links`, () =>
+    transaction(async (id, at, choices) => {
+      assert.equal(await schedule(id, at), "saved");
+      await subscriber(`late-${expiry}@example.invalid`);
+      const job = await claim(at);
+      assert.ok(job);
+      await db.query("reset role; set local session_replication_role='replica'");
+      if (expiry === "publication")
+        await db.query("update private.offer_revisions set publication_ends_at=$2 where id=$1", [
+          choices[0].rev,
+          at,
+        ]);
+      else if (expiry === "redemption")
+        await db.query(
+          "update private.offer_revisions set redemption_starts_on=($2::timestamptz at time zone 'Asia/Colombo')::date-2,redemption_ends_on=($2::timestamptz at time zone 'Asia/Colombo')::date-1 where id=$1",
+          [choices[0].rev, at],
+        );
+      else
+        await db.query(
+          "update private.property_subscriptions set period_ends_at=$2 where property_id=$1",
+          [ids.property1, at],
+        );
+      await db.query("set local session_replication_role='origin'");
+      assert.equal(
+        await value("select private.prepare_newsletter_email_at($1,$2,$3,$4,$5,$6) as result", [
+          job.id,
+          job.lease,
+          hash(),
+          hash(),
+          Object.fromEntries(choices.map((item) => [item.id, hash()])),
+          at,
+        ]),
+        false,
+      );
+      const log = (
+        await db.query(
+          "select status,last_error_code,payload_digest from private.email_delivery_logs where id=$1",
+          [job.id],
+        )
+      ).rows[0];
+      assert.deepEqual(log, {
+        status: "suppressed",
+        last_error_code: "dispatch_ineligible",
+        payload_digest: null,
+      });
+      assert.equal(await value("select count(*)::int as result from private.newsletter_links"), 0);
+      assert.equal(
+        await value(
+          "select count(*)::int as result from private.newsletter_tokens where newsletter_delivery_id is not null",
+        ),
+        0,
+      );
+    }));
+}

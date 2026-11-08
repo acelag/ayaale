@@ -2,14 +2,20 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  outputDir: "test-results/chromium",
   fullyParallel: true,
-  testIgnore: "**/seo-live.spec.ts",
+  testIgnore: [
+    "**/seo-live.spec.ts",
+    "**/performance.spec.ts",
+    "**/release-quality.spec.ts",
+    "**/full-journey.spec.ts",
+  ],
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 1 : 2,
   timeout: 30_000,
   globalTimeout: 10 * 60 * 1000,
-  reporter: [["list"], ["html", { open: "never" }]],
+  reporter: [["list"], ["html", { outputFolder: "playwright-report/chromium", open: "never" }]],
   use: {
     baseURL: "http://127.0.0.1:3100",
     trace: "retain-on-failure",

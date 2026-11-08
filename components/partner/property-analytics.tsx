@@ -1,4 +1,8 @@
 import type { ReactNode } from "react";
+import {
+  TrafficSourceSummary,
+  type SourceCount,
+} from "@/components/analytics/traffic-source-summary";
 
 type Activity = { views: number; whatsapp: number; calls: number };
 type DailyActivity = Activity & { date: string };
@@ -9,6 +13,7 @@ export type PropertyAnalyticsData = {
   previous: Activity;
   trend: DailyActivity[];
   offers: (Activity & { id: string; title: string })[];
+  sources?: SourceCount[];
 };
 
 const series = [
@@ -210,6 +215,7 @@ export function PropertyAnalytics({
         </p>
         <ActivityTrend daily={data.trend} />
       </section>
+      <TrafficSourceSummary sources={data.sources ?? []} />
       <section
         className="min-w-0 rounded-lg border bg-card p-4 sm:p-5"
         aria-labelledby="monthly-heading"

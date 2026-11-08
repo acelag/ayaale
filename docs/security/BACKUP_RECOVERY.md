@@ -24,6 +24,8 @@ The temporary directory is 0700 and dump 0600. Child-process database passwords 
 
 Actual T014 local result: PASS for every listed check. The synthetic archive was removed after the drill. No recoverable copy of hosted user data was retained.
 
+T055 adds tested archive encryption and a proposed operating procedure in [OPERATIONS.md](OPERATIONS.md). Hosted exports, off-site storage, scheduling and a full restore drill remain pending; encryption tooling alone is not an operational backup.
+
 ## Before configuring real backups
 
 1. Assign an operator and approve environment-specific RPO/RTO and retention. Choose an encrypted off-site destination and access/rotation policy. Keep production and development archives separate.

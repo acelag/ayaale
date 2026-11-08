@@ -30,6 +30,10 @@ test("property analytics supports assigned partners, range controls and accessib
       .getByRole("cell", { name: "26.7%" }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Monthly comparison" })).toBeVisible();
+  const sources = page.getByRole("region", { name: "Recorded view sources" });
+  await expect(sources).toContainText("Newsletter");
+  await expect(sources).toContainText("Unknown");
+  await expect(sources).toContainText("66.7%");
   expect(
     (
       await new AxeBuilder({ page })
@@ -94,4 +98,59 @@ test("offer views reuse a tab's token after refresh and reject cross-origin writ
     },
   });
   expect(ignored.status()).toBe(204);
+});
+
+test("view attribution sends only a bounded category with current consent", async ({ page }) => {
+  await page.route(/https:\/\/.*(?:googletagmanager|google-analytics)\.com\//, (route) =>
+    route.fulfill({ contentType: "text/javascript", body: "/* synthetic analytics */" }),
+  );
+  await page.route("**/api/offers/*/view", (route) =>
+    route.continue({
+      headers: { ...route.request().headers(), "user-agent": "Mozilla/5.0 AyaaleBrowser" },
+    }),
+  );
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "webdriver", { get: () => false });
+  });
+  await page.goto("/");
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "ayaale.analytics.v1",
+      JSON.stringify({ choice: "allow", time: Date.now() }),
+    ),
+  );
+  await page.goto("/?utm_source=newsletter&utm_medium=email&utm_campaign=weekly-newsletter");
+  const landingView = page.waitForRequest((request) =>
+    request.url().includes("/api/offers/fixture-coast-1/view"),
+  );
+  await page.getByRole("link", { name: "Fixture coast stay 1", exact: true }).first().click();
+  expect((await landingView).headers()["x-offer-source"]).toBe("newsletter");
+  const url =
+    "/offers/fixture-coast-1?utm_source=facebook&utm_medium=social&utm_campaign=social-launch&token=private%40example.com";
+  const view = () =>
+    page.waitForRequest((request) => request.url().includes("/api/offers/fixture-coast-1/view"));
+  let pending = view();
+  await page.goto(url);
+  const attributed = await pending;
+  expect(attributed.headers()["x-offer-source"]).toBe("social");
+  expect(attributed.headers()["referer"]).toBeUndefined();
+  expect(attributed.postData()).toBeNull();
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "ayaale.analytics.v1",
+      JSON.stringify({ choice: "decline", time: Date.now() }),
+    ),
+  );
+  pending = view();
+  await page.reload();
+  expect((await pending).headers()["x-offer-source"]).toBe("unknown");
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "ayaale.analytics.v1",
+      JSON.stringify({ choice: "allow", time: Date.now() }),
+    ),
+  );
+  pending = view();
+  await page.goto(`${url}&utm_source=facebook`);
+  expect((await pending).headers()["x-offer-source"]).toBe("unknown");
 });

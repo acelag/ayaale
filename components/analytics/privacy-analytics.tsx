@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { documentSource } from "@/lib/analytics/traffic-source.mjs";
 import {
   analyticsConfigured,
   analyticsEvent,
@@ -69,9 +70,13 @@ export function PrivacyAnalytics() {
   const publicRoute = Boolean(publicPage(pathname));
 
   useEffect(() => {
-    if (!configured) return;
+    if (!configured) {
+      documentSource.clear();
+      return;
+    }
     const target = window as unknown as AnalyticsWindow;
     if (!publicRoute || consentChoice(snapshot()) !== "allow" || browserDeclines()) {
+      documentSource.clear();
       target[`ga-disable-${id}`] = true;
       clearAnalyticsCookies();
       // A loaded vendor runtime cannot be unloaded safely. Replace the document.
@@ -79,6 +84,7 @@ export function PrivacyAnalytics() {
       return;
     }
     target[`ga-disable-${id}`] = false;
+    documentSource.read(window.location.href, document.referrer, snapshot());
     const safe = safePage(window.location.href);
     const page = safe ? { ...safe, page_referrer: safeReferrer(document.referrer) } : null;
     if (!page) return;

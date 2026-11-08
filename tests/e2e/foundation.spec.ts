@@ -21,19 +21,27 @@ test("health exposes only liveness and rejects unsupported writes", async ({ req
   expect((await request.post("/api/health")).status()).toBe(405);
 });
 
-test("keyboard users can skip to main content and follow the page link", async ({ page }) => {
+test("keyboard users can skip to main content and follow the page link", async ({
+  page,
+  browserName,
+}) => {
   const runtimeErrors: string[] = [];
   page.on("pageerror", (error) => runtimeErrors.push(error.message));
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-  await page.keyboard.press("Tab");
+  // WebKit on macOS uses Option-Tab to include links in keyboard navigation.
+  await page.keyboard.press(
+    browserName === "webkit" && process.platform === "darwin" ? "Alt+Tab" : "Tab",
+  );
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("main")).toBeFocused();
   const headingBox = await page.getByRole("heading", { level: 1 }).boundingBox();
   const headerBox = await page.locator("header").boundingBox();
   expect(headingBox!.y).toBeGreaterThanOrEqual(headerBox!.y + headerBox!.height);
-  await page.keyboard.press("Tab");
+  await page.keyboard.press(
+    browserName === "webkit" && process.platform === "darwin" ? "Alt+Tab" : "Tab",
+  );
   const about = page.getByRole("link", { name: "Explore offers", exact: true });
   await expect(about).toBeFocused();
   await page.keyboard.press("Enter");

@@ -749,7 +749,10 @@ export async function handlePartnerFixture(req, res) {
         whatsapp: index === 0 ? 2 : 0,
         calls: index === 0 ? 1 : 0,
       })).reverse(),
-      sources: [{ source: "unknown", views: 14 }],
+      sources: [
+        { source: "unknown", views: 10 },
+        { source: "social", views: 4 },
+      ],
     });
   }
   if (url.pathname === "/rest/v1/rpc/get_admin_content_health") {
@@ -964,6 +967,12 @@ export async function handlePartnerFixture(req, res) {
         date: new Date(Date.UTC(2026, 10, 7 - (days - 1 - i))).toISOString().slice(0, 10),
         ...(i === days - 1 ? current : zero),
       })),
+      sources: property.totals
+        ? [
+            { source: "newsletter", views: Math.min(10, current.views) },
+            { source: "unknown", views: Math.max(0, current.views - 10) },
+          ]
+        : [],
       offers: property.totals
         ? [{ id: managedOfferId, title: "Fixture analytics stay", ...current }]
         : [],
@@ -1153,4 +1162,13 @@ export async function handlePartnerFixture(req, res) {
     return reply(res, 200, { Key: url.pathname.slice("/storage/v1/object/".length) });
   }
   return false;
+}
+
+// Test-provider identity only. The database-backed journey uses the same PKCE
+// substitute but executes application RPCs and authorization in real PostgreSQL.
+export function fixtureIdentity(request) {
+  return tokens.get(request.headers.authorization?.replace(/^Bearer /, "")) ?? null;
+}
+export function fixtureIdentityById(id) {
+  return [...accounts.values()].find((account) => account.user.id === id)?.user ?? null;
 }
