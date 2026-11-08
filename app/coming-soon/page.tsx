@@ -27,13 +27,13 @@ export default async function ComingSoonPage({
       tabIndex={-1}
       className="flex min-h-svh flex-col bg-background px-6 py-8 text-foreground sm:px-12"
     >
-      <div className="text-2xl font-bold tracking-tight text-primary" aria-label="Ayaale">
-        ayaale<span aria-hidden="true">.</span>
-      </div>
       <section
         aria-labelledby="coming-soon-heading"
         className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center py-16"
       >
+        <div className="mb-8 text-2xl font-bold tracking-tight text-primary" aria-label="Ayaale">
+          ayaale<span aria-hidden="true">.</span>
+        </div>
         <p className="text-sm font-semibold uppercase tracking-widest text-primary">
           Something good is on its way
         </p>
