@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import pg from "pg";
+import { seedManualDemo } from "./manual-demo-seed.mjs";
 import { createDatabaseHarness } from "../database/helpers.mjs";
 import { fixtureIdentity, fixtureIdentityById, handlePartnerFixture } from "./partner-fixture.mjs";
 
@@ -126,9 +127,38 @@ async function snapshot(property) {
     ),
   };
 }
+if (process.env.AYAALE_LOCAL_DEMO === "1") {
+  try {
+    const { rows } = await adminQuery(
+      "select proname from pg_proc where pronamespace='public'::regnamespace and prokind='f'",
+    );
+    for (const row of rows) if (identifiers.test(row.proname)) allowedRPCs.add(row.proname);
+    await seedManualDemo(harness.db, harness.ids, objects);
+    console.log(
+      "Local practice data ready. Authentication and Storage are simulated; all business rules use the isolated local database.",
+    );
+  } catch (error) {
+    await pool.end();
+    await maintenance.end();
+    await harness.cleanup();
+    throw error;
+  }
+}
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, "http://127.0.0.1:3101");
+    if (
+      process.env.AYAALE_LOCAL_DEMO === "1" &&
+      req.method === "GET" &&
+      url.pathname === "/demo-confirm"
+    ) {
+      const email = url.searchParams.get("email");
+      if (!email?.endsWith("@example.invalid")) return reply(res, 400, {});
+      res.writeHead(302, {
+        Location: `http://127.0.0.1:3200/auth/callback?code=${encodeURIComponent(email)}`,
+      });
+      return res.end();
+    }
     if (url.pathname === "/ready") return reply(res, 200, { ready: true });
     if (url.pathname.startsWith("/auth/v1/")) return await handlePartnerFixture(req, res);
     if (url.pathname.startsWith("/__journey/")) {
@@ -214,6 +244,15 @@ const server = createServer(async (req, res) => {
           res.writeHead(200, { "Content-Type": "image/webp" });
           return res.end(objects.get(path));
         }
+      }
+      if (
+        url.pathname === "/storage/v1/object/ayaale-private-photos" &&
+        req.method === "DELETE" &&
+        service
+      ) {
+        const body = await json(req);
+        for (const path of body.prefixes ?? []) objects.delete(path);
+        return reply(res, 200, []);
       }
       if (url.pathname === "/storage/v1/object/sign/ayaale-private-photos" && service) {
         const body = await json(req);
@@ -335,16 +374,32 @@ const server = createServer(async (req, res) => {
     reply(res, 500, { code: error.code ?? "TEST_GATEWAY", message: error.message });
   }
 });
+// Local practice reconciles offer schedules/expiry only; no email worker runs.
+const demoTimer =
+  process.env.AYAALE_LOCAL_DEMO === "1"
+    ? setInterval(() => {
+        void scoped(null, true, (db) => db.query("select public.run_offer_lifecycle()")).catch(
+          (error) => console.error("Practice lifecycle:", error.code ?? "error"),
+        );
+      }, 15_000)
+    : null;
 server.listen(3101, "127.0.0.1");
 let stopping = false;
 async function stop() {
   if (stopping) return;
   stopping = true;
+  if (demoTimer) clearInterval(demoTimer);
   server.close();
   await pool.end();
   await maintenance.end();
   await harness.cleanup();
-  process.exit(0);
+  process.exit(process.exitCode ?? 0);
 }
 process.on("SIGTERM", stop);
 process.on("SIGINT", stop);
+
+server.on("error", (error) => {
+  console.error("Local gateway failed:", error.code);
+  process.exitCode = 1;
+  void stop();
+});

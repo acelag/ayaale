@@ -122,3 +122,7 @@ Signup terms and the protected trial-ledger audit were prepared without schema/d
 ## Phase 6 verification — 8 November 2026
 
 Fresh verification passed: formatting/lint/types, 40 unit tests, 181 database tests, 20 contrast pairs, 141 Chromium checks (one existing skip), 8 SEO checks, 56 mobile/accessibility checks, 2 database-backed desktop/WebKit journeys, 3 mobile performance checks and the isolated synthetic database recovery drill. Local median LCP was 532–600 ms, CLS 0. Hosted job and trial audits passed; public HTTP probes timed out. Operational setup, real-partner pilot, public rollout and exact deployed acceptance remain unfinished. Full evidence and task-by-task acceptance: [Phase 6 review](verification/PHASE_6_REVIEW.md).
+
+## Isolated local manual practice
+
+`npm run demo:local` prepares a reset-on-restart local database, synthetic Auth/Storage and a separate source snapshot at http://127.0.0.1:3200. See [the test logins and walkthrough](LOCAL_PRACTICE_GUIDE.md). One focused database test verifies seed isolation, realistic states, owner/staff/admin separation and absence of email sends. `npm run test:demo` verifies catalogue/contact simulation and role-specific screens on desktop/mobile. Setup verification: seed test passed, 2 practice checks, 12 normal offer/contact checks and 2 full local database journeys passed, plus quality checks. No hosted data or paid resources changed.

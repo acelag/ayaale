@@ -17,6 +17,7 @@ const production = {
 test("indexing requires explicit canonical production release configuration", () => {
   assert.equal(indexingEnabled(production), true);
   for (const override of [
+    { PRELAUNCH_ENABLED: "true" },
     { APP_ENV: "development" },
     { APP_ENV: "staging" },
     { NEXT_PUBLIC_SITE_URL: "https://preview.ayaale.com" },

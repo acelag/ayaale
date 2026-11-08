@@ -1,3 +1,4 @@
+import { localDemoEnabled } from "@/lib/local-demo";
 import { StructuredData } from "@/components/seo/structured-data";
 import { publicMetadata } from "@/lib/seo/metadata";
 import { offerData } from "@/lib/seo/structured-data";
@@ -235,6 +236,7 @@ export default async function OfferDetails({ params }: Props) {
             <p className="mt-2 whitespace-pre-line text-sm">{offer.childPolicy}</p>
           )}
           <ContactActions
+            demo={localDemoEnabled()}
             slug={slug}
             offerUrl={offerUrl}
             whatsappUrl={whatsappUrl}

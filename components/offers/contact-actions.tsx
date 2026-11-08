@@ -5,6 +5,7 @@ import { Copy, MessageCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type Props = {
+  demo?: boolean;
   slug: string;
   offerUrl: string;
   whatsappUrl: string | null;
@@ -12,7 +13,8 @@ type Props = {
 };
 type Channel = "whatsapp" | "call";
 
-export function ContactActions({ slug, offerUrl, whatsappUrl, callUrl }: Props) {
+export function ContactActions({ slug, offerUrl, whatsappUrl, callUrl, demo = false }: Props) {
+  const [practiceClick, setPracticeClick] = useState(false);
   const lastClick = useRef<Partial<Record<Channel, number>>>({});
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "manual">("idle");
 
@@ -46,32 +48,63 @@ export function ContactActions({ slug, offerUrl, whatsappUrl, callUrl }: Props) 
 
   return (
     <section className="mt-5 border-t pt-4" aria-label="Offer actions">
-      {(whatsappUrl || callUrl) && (
+      {demo && (whatsappUrl || callUrl) ? (
         <div className="offer-contact-bar">
           {whatsappUrl && (
-            <Button asChild>
-              <a
-                href={whatsappUrl}
-                data-analytics-contact="whatsapp"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => track("whatsapp")}
-                onAuxClick={(event) => {
-                  if (event.button === 1) track("whatsapp");
-                }}
-              >
-                <MessageCircle size={18} aria-hidden="true" /> WhatsApp
-              </a>
+            <Button
+              onClick={() => {
+                track("whatsapp");
+                setPracticeClick(true);
+              }}
+            >
+              <MessageCircle size={18} aria-hidden="true" /> WhatsApp
             </Button>
           )}
           {callUrl && (
-            <Button asChild variant={whatsappUrl ? "outline" : "default"}>
-              <a data-analytics-contact="call" href={callUrl} onClick={() => track("call")}>
-                <Phone size={17} aria-hidden="true" /> Call
-              </a>
+            <Button
+              variant="outline"
+              onClick={() => {
+                track("call");
+                setPracticeClick(true);
+              }}
+            >
+              <Phone size={17} aria-hidden="true" /> Call
             </Button>
           )}
         </div>
+      ) : (
+        (whatsappUrl || callUrl) && (
+          <div className="offer-contact-bar">
+            {whatsappUrl && (
+              <Button asChild>
+                <a
+                  href={whatsappUrl}
+                  data-analytics-contact="whatsapp"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => track("whatsapp")}
+                  onAuxClick={(event) => {
+                    if (event.button === 1) track("whatsapp");
+                  }}
+                >
+                  <MessageCircle size={18} aria-hidden="true" /> WhatsApp
+                </a>
+              </Button>
+            )}
+            {callUrl && (
+              <Button asChild variant={whatsappUrl ? "outline" : "default"}>
+                <a data-analytics-contact="call" href={callUrl} onClick={() => track("call")}>
+                  <Phone size={17} aria-hidden="true" /> Call
+                </a>
+              </Button>
+            )}
+          </div>
+        )
+      )}
+      {practiceClick && (
+        <p role="status" className="mt-2 text-sm">
+          Practice click only. No call or WhatsApp opened.
+        </p>
       )}
       <Button variant="outline" size="sm" onClick={() => void copyLink()}>
         <Copy size={16} aria-hidden="true" /> Copy Link

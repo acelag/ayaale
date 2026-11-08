@@ -9,6 +9,8 @@ export default defineConfig({
     "**/performance.spec.ts",
     "**/release-quality.spec.ts",
     "**/full-journey.spec.ts",
+    "**/manual-practice.spec.ts",
+    "**/prelaunch.spec.ts",
   ],
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,

@@ -192,7 +192,13 @@ export async function handlePartnerFixture(req, res) {
     const { email, code_challenge } = await readJson(req);
     if (
       !code_challenge ||
-      !url.searchParams.get("redirect_to")?.startsWith("http://127.0.0.1:3100/auth/callback")
+      !url.searchParams
+        .get("redirect_to")
+        ?.startsWith(
+          process.env.AYAALE_LOCAL_DEMO === "1"
+            ? "http://127.0.0.1:3200/auth/callback"
+            : "http://127.0.0.1:3100/auth/callback",
+        )
     ) {
       return reply(res, 400, { message: "Fixture expected a callback with PKCE" });
     }
@@ -1171,4 +1177,8 @@ export function fixtureIdentity(request) {
 }
 export function fixtureIdentityById(id) {
   return [...accounts.values()].find((account) => account.user.id === id)?.user ?? null;
+}
+
+export function fixtureUserByEmail(email) {
+  return accounts.get(email)?.user ?? null;
 }
